@@ -240,8 +240,11 @@ typedef struct {
 } ngx_event_actions_t;
 
 
-extern ngx_event_actions_t   ngx_event_actions;
+typedef ngx_int_t (*ngx_event_accept_filter_pt) (ngx_connection_t *c);
 
+
+extern ngx_event_actions_t   ngx_event_actions;
+extern ngx_event_accept_filter_pt ngx_event_top_accept_filter;
 
 /*
  * The event filter requires to read/write the whole data:
@@ -511,6 +514,7 @@ extern ngx_atomic_t  *ngx_stat_requests;
 extern ngx_atomic_t  *ngx_stat_active;
 extern ngx_atomic_t  *ngx_stat_reading;
 extern ngx_atomic_t  *ngx_stat_writing;
+extern ngx_atomic_t  *ngx_stat_waiting;
 extern ngx_atomic_t  *ngx_stat_request_time;
 
 #endif
@@ -550,6 +554,9 @@ u_char *ngx_acceptex_log_error(ngx_log_t *log, u_char *buf, size_t len);
 
 
 ngx_int_t ngx_send_lowat(ngx_connection_t *c, size_t lowat);
+
+
+void ngx_close_accepted_connection(ngx_connection_t *c);
 
 
 /* used in ngx_log_debugX() */

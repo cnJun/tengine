@@ -127,9 +127,9 @@ http {
     }
 
     upstream nothing {
-        session_sticky cookie=test maxidle=3600 option=indirect;
-        server         127.0.0.1:9000;
-        server         127.0.0.1:9001;
+        session_sticky cookie=test;
+        server         127.0.0.1:9002;
+        server         127.0.0.1:9003;
     }
 
     upstream insert_nocookie {
@@ -302,7 +302,6 @@ http {
         }
 
         location /test_nothing {
-            session_sticky_hide_cookie upstream=nothing;
             proxy_pass http://nothing/;
         }
     }
@@ -343,7 +342,7 @@ like($r, qr/\d{4}/, 'insert with indirect -- upstream don\'t recv cookie');
 #6
 $r = http_get('/test_rewrite');
 $cookie = getcookie($r);
-$res = getcookie($r);
+$res = getres($r);
 like($r, qr/set-cookie:[^\w]*test=\w{32}/i, 'rewrite -- upstream set cookie');
 unlike($r, qr/set-cookie:[^\w]*test=\w{32};[^\w]*domain/i, 'rewrite -- upstream set cookie and session_sticky modify the value only');
 like(my_http_get('/test_rewrite', "$cookie"), qr/$res/, 'rewrite -- with cookie in request');
@@ -363,22 +362,22 @@ unlike(http_get('/test_prefix_no_setcookie'), qr/set-cookie:[^\w]*test=\w{32}\W*
 $now = time();
 like(my_http_get('/test_insert_indirect_off', "asdfasfasdfsadf\|$now\|$now"), qr/502/, 'insert with indirect and fallback off');
 #11
-like(http_get('/test_insert_indirect_off'), qr/900\d/, 'insert with indirct --- frist and fallback off');
+like(http_get('/test_insert_indirect_off'), qr/200/, 'insert with indirct --- frist and fallback off');
 #12
 $now = time();
 like(my_http_get('/test_insert_off', "asdfasfasdfsadf\|$now\|$now"), qr/502/, 'insert without indirect adn fallback off');
 #13
-like(http_get('/test_insert_off'), qr/900\d/, 'insert -- frist and fallback off');
+like(http_get('/test_insert_off'), qr/200/, 'insert -- frist and fallback off');
 #14
 $now = time();
 like(my_http_get('/test_rewrite_off', "asdfasfasdfsadf\|$now\|$now"), qr/502/, 'rewrite -- fallback off');
 #15
-like(http_get('/test_rewrite_off'), qr/900\d/, 'rewrite -- frist and fallback off');
+like(http_get('/test_rewrite_off'), qr/200/, 'rewrite -- frist and fallback off');
 #16
 $now = time();
-like(my_http_get('/test_prefix_off', "asdfasfasdfsadf\|$now\|$now"), qr/200/, 'prefix-cookie invailied');
+like(my_http_get('/test_prefix_off', "asdfasfasdfsadf~\|$now\|$now"), qr/502/, 'prefix-cookie invailied');
 #17
-like(http_get('/test_prefix_off'), qr/900\d/, 'prefix -- frist and fallback off');
+like(http_get('/test_prefix_off'), qr/200/, 'prefix -- frist and fallback off');
 #18
 unlike(http_get('/test_insert_nodomain'), qr/domain/i, 'insert -- without domain');
 #19

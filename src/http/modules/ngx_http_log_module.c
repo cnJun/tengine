@@ -908,7 +908,7 @@ ngx_http_log_request_time(ngx_http_request_t *r, u_char *buf,
 
     ms = ngx_max(ms, 0);
 
-    return ngx_sprintf(buf, "%T.%03M", ms / 1000, ms % 1000);
+    return ngx_sprintf(buf, "%T.%03M", (time_t) ms / 1000, ms % 1000);
 }
 
 
@@ -1448,7 +1448,7 @@ ngx_http_log_set_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         }
 
         if (ngx_strncmp(value[i].data, "buffer=", 7) == 0) {
-            if (skip_file == 0) {
+            if (skip_file) {
                 continue;
             }
 
